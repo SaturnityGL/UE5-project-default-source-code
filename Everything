@@ -17,12 +17,13 @@ First off;
 Recreate the Source Folder Structure
 Inside YourProject/Source/YourProject/, restore these:
 Source/
+└──MyProjectEditor/ 
+MyProjectEditor.Target.cs
 └── YourProject/
     ├── MyProject.Build.cs
     ├── MyProject.cpp
     ├── MyProject.h
     ├── MyProject.Target.cs
-    ├── MyProjectEditor.Target.cs
     ├── Public/
     │   └── MyProjectGameModeBase.h
     └── Private/
