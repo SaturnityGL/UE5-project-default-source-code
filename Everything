@@ -1,1 +1,232 @@
-sorry, never used GitHub for this type of thing so I hope it works just fine.
+sorry, never used GitHub for this type of thing so I hope it works just fine and the format doesn't get messed up? Also sorry if some stuff gets confusing, my project is literally just named "MyProject" and I am using default Unreal Projects directory. I am pretty new to Unreal so this was a terrible time haha. Also, don't do what I did, try to back-up somewhat often. 
+
+How I rebuilt my broken project after deleting the Source folder, and fixed every compile, module, and toolset error along the way. (so far)
+
+the errors;
+
+Projects\\MyProject\\Intermediate\\ProjectFiles\\UE5.vcxproj : warning : The build tools for Visual Studio 2022 (v143) cannot be found. Install Visual Studio 2022 (v143) to build using the Visual Studio 2022 (v143) build tools.   
+
+Documents\\Unreal Projects\\MyProject\\Intermediate\\ProjectFiles\\UE5.vcxproj : warning : Platform 'Win64' referenced in the project file 'UE5' cannot be found. 
+
+From these, and what everyone else says, you need to ensure v143 is installed. Obviously. Except if you're reading this to get info you've probably done that a few dozen times and you're sick of hearing "ensure it's installed." 
+You've probably done everything a few dozen times at this point. Heck you might have done what I did and go into the VS2022 installer and installed every single up-to-date item that had v143 in the name! You might have deleted the saved/.vs/.vsconfig/.sln/Intermediate a few dozen times and clicked Generate Visual Studio Files a bunch as well. 
+Again, if you're reading this you've probably gone down a very specific path like I did, because nothing I searched up worked either. (Also, even if you use something like Rider, you need VS2022 still with the proper plugins)
+
+First off;
+Recreate the Source Folder Structure
+Inside YourProject/Source/YourProject/, restore these:
+Source/
+└── YourProject/
+    ├── MyProject.Build.cs
+    ├── MyProject.cpp
+    ├── MyProject.h
+    ├── MyProject.Target.cs
+    ├── MyProjectEditor.Target.cs
+    ├── Public/
+    │   └── MyProjectGameModeBase.h
+    └── Private/
+        └── MyProjectGameModeBase.cpp
+The Target.cs files define your game/editor targets, so without them, VS won’t generate the right solution configs.
+
+Let's focus on the structure first. Do you have a Source folder? It should be something like "C:\Users\XXXX\Documents\Unreal Projects\MyProject\Source\MyProject"
+
+If not, no worries. I ended up deleting my source folder on accident, I had a backup but it was a bit old and had to re-do it anyways. All you have to do (if it's COMPLETELY gone) is New>Folder>Name "Source"
+Inside that folder New>Folder>Name MyProject
+Either way, you should in the end have the file path looking like ...\Documents\Unreal Projects\MyProject\Source\MyProject
+
+Light context as a reminder;
+(Documents: Your normal Documents folder)
+(Unreal Projects: This will be all your projects)
+(MyProject first folder: This will be where most of your files are. This will be the whole "project file" with folders and files like Content/Binaries/saved/.vs/.vsconfig/.uproject)
+(Source: This should just be a folder name source.)
+(MyProject: This should be inside the Source Folder)
+Why did Unreal feel the need to have a project folder inside a Source folder inside a project folder instead of just "source"? Who knows. 
+
+Alright, have you made sure you have these folders? Now you should be in the very last folder (Documents\Unreal Projects\MyProject\Source\MyProject) 
+
+From here, you need to ensure that the surface level of Source/YourProject has two folders, if not, right click and make a new folder. One named Public, one named Private. 
+This is where that large folder tree comes in;
+Source/
+└── YourProject/
+    ├── MyProject.Build.cs
+    ├── MyProject.cpp
+    ├── MyProject.h
+    ├── MyProject.Target.cs
+    ├── MyProjectEditor.Target.cs
+    ├── Public/
+    │   └── MyProjectGameModeBase.h
+    └── Private/
+        └── MyProjectGameModeBase.cpp
+
+You might only have one or two, but it helps to have all of them.
+To restore these, you can use something like Notepad (I prefer Notepad++) to generate each of them. 
+You will open up your word editor of your choice (Cannot stress enough, Notepad++ is beautiful) and add some code, and then go up to file, Save As -> Go to the YourProject\Source\YourProject, name it properly and add the CORRECT EXTENSION TO THE END OF THE TITLE. Make sure you click the drop down under the name to change the "Save As" to Any File
+
+So, here is the defaults for the source folder and what they do;
+
+
+1. Name: MyProject.Build.cs
+Defines your module’s dependencies and build settings.
+
+using UnrealBuildTool;
+
+public class MyProject : ModuleRules
+{
+    public MyProject(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        PublicDependencyModuleNames.AddRange(new string[] {
+            "Core", "CoreUObject", "Engine", "InputCore"
+        });
+        PrivateDependencyModuleNames.AddRange(new string[] { });
+    }
+}
+
+
+2. Name: MyProject.cpp
+Registers your module with Unreal.
+
+include "MyProject.h"
+
+include "Modules/ModuleManager.h"
+
+IMPLEMENTPRIMARYGAME_MODULE(FDefaultGameModuleImpl, MyProject, "MyProject");
+
+
+3. Name: MyProject.h
+Usually empty unless you define global macros or includes.
+
+pragma once
+
+include "CoreMinimal.h"
+
+
+4. Name: MyProject.Target.cs
+Tells Unreal how to build the game executable.
+
+using UnrealBuildTool;
+using System.Collections.Generic;
+
+public class MyProjectTarget : TargetRules
+{
+    public MyProjectTarget(TargetInfo Target) : base(Target)
+    {
+        Type = TargetType.Game;
+        DefaultBuildSettings = BuildSettingsVersion.V2;
+        ExtraModuleNames.Add("MyProject");
+    }
+}
+
+
+5. Name: MyProjectEditor.Target.cs
+Tells Unreal how to build the Editor version of your game.
+
+`csharp
+using UnrealBuildTool;
+using System.Collections.Generic;
+
+public class MyProjectEditorTarget : TargetRules
+{
+    public MyProjectEditorTarget(TargetInfo Target) : base(Target)
+    {
+        Type = TargetType.Editor;
+        DefaultBuildSettings = BuildSettingsVersion.V2;
+        ExtraModuleNames.Add("MyProject");
+    }
+}
+
+These previous 5 should just simply be in the bare folder, not the Public/Private. 
+
+
+6. Location AND name: Public\MyProjectGameModeBase.h
+Your default GameMode class header.
+
+pragma once
+
+include "CoreMinimal.h"
+
+include "GameFramework/GameModeBase.h"
+
+include "MyProjectGameModeBase.generated.h"
+
+UCLASS()
+class MYPROJECT_API AMyProjectGameModeBase : public AGameModeBase
+{
+    GENERATED_BODY()
+};
+
+
+7. Location AND name: Private/MyProjectGameModeBase.cpp
+Your GameMode implementation file.
+
+include "MyProjectGameModeBase.h"
+
+
+And, as I mentioned, for each of these open your text file editor, click "New" then copy and paste the code. Then Save As->Find the Source\YourProject folder. Unless specified in the name to be in public or private, it should be out in the open. Make sure you add the right extension when you save as, and make sure to click "all files" or "any file" so it doesn't save as just a generic text file.
+
+(OPTIONAL, BUT I DID IT, NOT SURE IF IT MATTERS: 
+
+Create this file at:  
+%APPDATA%\Unreal Engine\UnrealBuildTool\BuildConfiguration.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration xmlns="https://www.unrealengine.com/BuildConfiguration">
+  <ProjectFileGenerator>
+    <Format>VisualStudio2022</Format>
+  </ProjectFileGenerator>
+  <WindowsPlatform>
+    <Compiler>VisualStudio2022</Compiler>
+    <CompilerVersion>Latest</CompilerVersion>
+  </WindowsPlatform>
+</Configuration>
+
+AGAIN, NOT SURE IF IT DID MUCH BUT I'M JUST TRYING TO BE THOROUGH)
+
+Now bear with me, hopefully this is the last time;
+Delete these folders and files from your project root:
+
+Intermediate
+Binaries
+Saved
+.vs/  
+MyProject.sln
+
+Then regenerate your Visual Studio files:
+
+- Right-click MyProject.uproject -> Generate Visual Studio project files
+
+And now, double click/Open your SLN. Hopefully, VS2022 opens, the errors are gone, and you finally see the right configure options at the top, and you can finally build. 
+
+TLDR:
+“Missing modules” "Missing v143 tools for VS2022" : Recreated Source/ folder and added .Target.cs files
+
+"Already contains a definition” : Deleted duplicate .cs files in Intermediate
+
+so; 
+Always regenerate project files after adding/removing C++ classes manually  
+
+Keep backups of your Source folder before major changes  
+
+Use Git or version control to snapshot working states and consistently make back-ups
+
+Don’t forget to set Development Editor / Win64 in VS Configuration Manager when it finally shows up
+
+As I said, this is just part one. I still have to fix a lot more, but I will continue to add to the github for people who might need it. This at least got me ONE step closer to fixing a major problem that after two days, I couldn't even chip a single piece off. The SLN is picky. Unreal is kind of weird too, with the actual engine itself being implemented into each project. You might be only having issues with a single project while your other ones work perfectly fine. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
