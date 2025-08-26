@@ -8,9 +8,8 @@ This led to everytime I opened my fresh SLN to try and recompile, I would get th
 
 Documents\\Unreal Projects\\MyProject\\Intermediate\\ProjectFiles\\UE5.vcxproj : warning : Platform 'Win64' referenced in the project file 'UE5' cannot be found. 
 
-I will be adding a text doc that explains what I did to finally start solving. Hope it helps somebody, because the last two days has been purely awful. 
+"Everything" file has the fix
 
-Also, this was in relation to a bunch of modules not working.
 
 Going to add tags/labels down here to help reach
 
